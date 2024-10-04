@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -54,7 +55,7 @@ func main() {
 	handlerUser.RegisterRoutes(v1.Group("/user"))
 
 	srv := &http.Server{
-		Addr:    os.Getenv("PORT"),
+		Addr:    fmt.Sprintf(":%s", os.Getenv("PORT")),
 		Handler: router,
 	}
 
