@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/adityarizkyramadhan/golang-dot-indonesia/internal/entity"
 	"github.com/adityarizkyramadhan/golang-dot-indonesia/internal/handler"
 	"github.com/adityarizkyramadhan/golang-dot-indonesia/internal/infrastructure/cache"
 	"github.com/adityarizkyramadhan/golang-dot-indonesia/internal/infrastructure/database"
@@ -29,6 +30,13 @@ func main() {
 	db, err := database.NewDB()
 	if err != nil {
 		panic(err)
+	}
+
+	if os.Getenv("AUTO_MIGRATE") == "true" {
+		err = db.AutoMigrate(entity.User{})
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	redis, err := cache.NewRedis()
