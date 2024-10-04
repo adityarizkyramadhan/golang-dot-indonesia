@@ -6,6 +6,7 @@ import (
 	"github.com/adityarizkyramadhan/golang-dot-indonesia/internal/dto"
 	"github.com/adityarizkyramadhan/golang-dot-indonesia/internal/middleware"
 	"github.com/adityarizkyramadhan/golang-dot-indonesia/internal/usecase"
+	custom_error "github.com/adityarizkyramadhan/golang-dot-indonesia/pkg/errors"
 	"github.com/adityarizkyramadhan/golang-dot-indonesia/pkg/response"
 	"github.com/gin-gonic/gin"
 )
@@ -27,7 +28,7 @@ func (u *User) RegisterRoutes(r *gin.RouterGroup) {
 func (u *User) Register(ctx *gin.Context) {
 	var user dto.UserRegister
 	if err := ctx.ShouldBindJSON(&user); err != nil {
-		ctx.Error(err)
+		ctx.Error(custom_error.NewError(custom_error.ErrBadRequest, err.Error()))
 		ctx.Next()
 		return
 	}
@@ -46,7 +47,7 @@ func (u *User) Register(ctx *gin.Context) {
 func (u *User) Login(ctx *gin.Context) {
 	var user dto.UserLogin
 	if err := ctx.ShouldBindJSON(&user); err != nil {
-		ctx.Error(err)
+		ctx.Error(custom_error.NewError(custom_error.ErrBadRequest, err.Error()))
 		ctx.Next()
 		return
 	}
