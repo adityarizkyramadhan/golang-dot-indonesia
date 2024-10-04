@@ -33,7 +33,9 @@ func JWTMiddleware() gin.HandlerFunc {
 			ctx.Abort()
 			return
 		}
-		ctx.Set("id", mapClaims["id"])
+		// mapClaims["id"] buat jadi int
+		idInt := int(mapClaims["id"].(float64))
+		ctx.Set("id", idInt)
 		ctx.Next()
 	}
 }
