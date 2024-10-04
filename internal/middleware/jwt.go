@@ -9,7 +9,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func JWTMiddleware(roles []string) gin.HandlerFunc {
+func JWTMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		token := ctx.GetHeader("Authorization")
 		if token == "" {
@@ -26,7 +26,6 @@ func JWTMiddleware(roles []string) gin.HandlerFunc {
 			ctx.Abort()
 			return
 		}
-
 		mapClaims, ok := claims.(jwt.MapClaims)
 		if !ok {
 			err := custom_error.NewError(custom_error.ErrInternalServer, "unexpected claims")
@@ -34,29 +33,6 @@ func JWTMiddleware(roles []string) gin.HandlerFunc {
 			ctx.Abort()
 			return
 		}
-
-		role, ok := mapClaims["role"].(string)
-		if !ok {
-			err := custom_error.NewError(custom_error.ErrInternalServer, "unexpected role")
-			ctx.Error(err).SetType(gin.ErrorTypePrivate)
-			ctx.Abort()
-			return
-		}
-
-		roleAllowed := false
-		for _, r := range roles {
-			if r == role {
-				roleAllowed = true
-				break
-			}
-		}
-		if !roleAllowed {
-			err := custom_error.NewError(custom_error.ErrUnauthorized, "role not allowed")
-			ctx.Error(err).SetType(gin.ErrorTypePublic)
-			ctx.Abort()
-			return
-		}
-
 		ctx.Set("id", mapClaims["id"])
 		ctx.Next()
 	}
