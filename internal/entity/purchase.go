@@ -34,6 +34,15 @@ func (i *InvoicePurchase) BeforeCreate() error {
 		now := time.Now().Format("2006-01-02")
 		i.OrderDate = &now
 	}
+	now := time.Now().Format(time.RFC3339)
+	i.CreatedAt = &now
+	i.UpdatedAt = &now
+	return nil
+}
+
+func (i *InvoicePurchase) BeforeUpdate() error {
+	now := time.Now().Format(time.RFC3339)
+	i.UpdatedAt = &now
 	return nil
 }
 
@@ -50,4 +59,17 @@ type Purchase struct {
 
 func (p *Purchase) TableName() string {
 	return "purchases"
+}
+
+func (p *Purchase) BeforeCreate() error {
+	now := time.Now().Format(time.RFC3339)
+	p.CreatedAt = &now
+	p.UpdatedAt = &now
+	return nil
+}
+
+func (p *Purchase) BeforeUpdate() error {
+	now := time.Now().Format(time.RFC3339)
+	p.UpdatedAt = &now
+	return nil
 }
