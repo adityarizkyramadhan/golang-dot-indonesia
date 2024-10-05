@@ -2,7 +2,7 @@
 
 Gambar ERD : ![ERD](docs/image.png)
 
-Berikut adalah penjelasan struktur direktori untuk proyek aplikasi berbasis Go, disusun dengan kalimat baku sesuai penelitian:
+Berikut adalah penjelasan struktur direktori untuk proyek aplikasi berbasis Go yang dibangun dengan clean architecture.:
 
 ### Penjelasan Struktur Direktorinya
 
