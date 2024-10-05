@@ -32,11 +32,9 @@ func main() {
 		panic(err)
 	}
 
-	if os.Getenv("AUTO_MIGRATE") == "true" {
-		err = db.AutoMigrate(entity.User{})
-		if err != nil {
-			panic(err)
-		}
+	err = db.AutoMigrate(&entity.User{}, &entity.Goods{}, &entity.InvoicePurchase{}, &entity.Purchase{})
+	if err != nil {
+		panic(err)
 	}
 
 	redis := cache.NewRedis()
