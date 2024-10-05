@@ -20,6 +20,8 @@ type UserUsecase interface {
 	FindByUsername(ctx context.Context, username string) (*entity.User, error)
 	FindByID(ctx context.Context, id int) (*entity.User, error)
 	Login(ctx context.Context, user *dto.UserLogin) (string, error)
+	Update(ctx context.Context, user *dto.UserUpdate) error
+	Delete(ctx context.Context, id int) error
 }
 
 func NewUser(userRepo repository.UserRepository) UserUsecase {
@@ -68,4 +70,23 @@ func (u *User) Login(ctx context.Context, user *dto.UserLogin) (string, error) {
 	}
 
 	return token, nil
+}
+
+func (u *User) Update(ctx context.Context, user *dto.UserUpdate) error {
+	userEntity, err := u.FindByID(ctx, *user.ID)
+	if err != nil {
+		return custom_error.NewError(custom_error.ErrNotFound, "user not found")
+	}
+
+	userEntity.Name = user.Name
+	return u.userRepo.Update(ctx, userEntity)
+}
+
+func (u *User) Delete(ctx context.Context, id int) error {
+	userEntity, err := u.FindByID(ctx, id)
+	if err != nil {
+		return custom_error.NewError(custom_error.ErrNotFound, "user not found")
+	}
+
+	return u.userRepo.Delete(ctx, *userEntity.ID)
 }

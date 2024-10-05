@@ -23,6 +23,8 @@ func (u *User) RegisterRoutes(r *gin.RouterGroup) {
 	r.POST("/register", u.Register)
 	r.POST("/login", u.Login)
 	r.GET("/profile", middleware.JWTMiddleware(), u.Profile)
+	r.PUT("/profile", middleware.JWTMiddleware(), u.Update)
+	r.DELETE("/", middleware.JWTMiddleware(), u.Delete)
 }
 
 func (u *User) Register(ctx *gin.Context) {
@@ -72,5 +74,40 @@ func (u *User) Profile(ctx *gin.Context) {
 		return
 	}
 	response := response.Success(user)
+	ctx.JSON(http.StatusOK, response)
+}
+
+func (u *User) Update(ctx *gin.Context) {
+	id := ctx.MustGet("id").(int)
+	var user dto.UserUpdate
+	if err := ctx.ShouldBindJSON(&user); err != nil {
+		ctx.Error(custom_error.NewError(custom_error.ErrBadRequest, err.Error()))
+		ctx.Next()
+		return
+	}
+
+	user.ID = &id
+
+	err := u.userUsece.Update(ctx, &user)
+	if err != nil {
+		ctx.Error(err)
+		ctx.Next()
+		return
+	}
+
+	response := response.Success("user updated")
+	ctx.JSON(http.StatusOK, response)
+}
+
+func (u *User) Delete(ctx *gin.Context) {
+	id := ctx.MustGet("id").(int)
+	err := u.userUsece.Delete(ctx, id)
+	if err != nil {
+		ctx.Error(err)
+		ctx.Next()
+		return
+	}
+
+	response := response.Success("user deleted")
 	ctx.JSON(http.StatusOK, response)
 }

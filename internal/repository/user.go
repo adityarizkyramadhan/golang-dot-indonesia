@@ -8,6 +8,7 @@ import (
 
 	"github.com/adityarizkyramadhan/golang-dot-indonesia/internal/entity"
 	"github.com/adityarizkyramadhan/golang-dot-indonesia/internal/infrastructure/cache"
+	custom_error "github.com/adityarizkyramadhan/golang-dot-indonesia/pkg/errors"
 	"gorm.io/gorm"
 )
 
@@ -31,7 +32,7 @@ func NewUser(db *gorm.DB, redis *cache.Redis) UserRepository {
 func (u *User) Create(ctx context.Context, user *entity.User) error {
 	sqlStatement := `INSERT INTO users (username, password, name, role) VALUES (?, ?, ?, ?)`
 	if err := u.db.WithContext(ctx).Exec(sqlStatement, user.Username, user.Password, user.Name, user.Role).Error; err != nil {
-		return err
+		return custom_error.NewError(custom_error.ErrInternalServer, err.Error())
 	}
 	return nil
 }
@@ -39,7 +40,7 @@ func (u *User) Create(ctx context.Context, user *entity.User) error {
 func (u *User) FindByUsername(ctx context.Context, username string) (*entity.User, error) {
 	var user entity.User
 	if err := u.db.WithContext(ctx).Where("username = ?", username).First(&user).Error; err != nil {
-		return nil, err
+		return nil, custom_error.NewError(custom_error.ErrNotFound, "user not found")
 	}
 	return &user, nil
 }
@@ -53,7 +54,7 @@ func (u *User) FindByID(ctx context.Context, id int) (*entity.User, error) {
 		return &user, nil
 	}
 	if err := u.db.WithContext(ctx).Where("id = ?", id).First(&user).Error; err != nil {
-		return nil, err
+		return nil, custom_error.NewError(custom_error.ErrNotFound, "user not found")
 	}
 	go func() {
 		expiredTime := time.Hour
@@ -69,7 +70,7 @@ func (u *User) FindByID(ctx context.Context, id int) (*entity.User, error) {
 func (u *User) Update(ctx context.Context, user *entity.User) error {
 	sqlStatement := `UPDATE users SET name = ?, role = ? WHERE id = ?`
 	if err := u.db.WithContext(ctx).Exec(sqlStatement, user.Name, user.Role, user.ID).Error; err != nil {
-		return err
+		return custom_error.NewError(custom_error.ErrInternalServer, err.Error())
 	}
 
 	go func() {
@@ -85,7 +86,7 @@ func (u *User) Update(ctx context.Context, user *entity.User) error {
 func (u *User) Delete(ctx context.Context, id int) error {
 	sqlStatement := `DELETE FROM users WHERE id = ?`
 	if err := u.db.WithContext(ctx).Exec(sqlStatement, id).Error; err != nil {
-		return err
+		return custom_error.NewError(custom_error.ErrInternalServer, err.Error())
 	}
 
 	go func() {
