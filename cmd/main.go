@@ -63,6 +63,11 @@ func main() {
 	handlerGoods := handler.NewGoods(useCaseGoods)
 	handlerGoods.RegisterRoutes(v1.Group("/goods"))
 
+	repoPurchase := repository.NewPurchase(db, redis, repoGoods)
+	useCasePurchase := usecase.NewInvoiceUsecase(repoPurchase)
+	handlerPurchase := handler.NewInvoiceHandler(useCasePurchase)
+	handlerPurchase.RegisterRoutes(v1.Group("/purchase"))
+
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%s", os.Getenv("PORT")),
 		Handler: router,
