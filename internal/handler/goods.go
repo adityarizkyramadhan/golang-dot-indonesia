@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/adityarizkyramadhan/golang-dot-indonesia/internal/dto"
-	"github.com/adityarizkyramadhan/golang-dot-indonesia/internal/entity"
 	"github.com/adityarizkyramadhan/golang-dot-indonesia/internal/middleware"
 	"github.com/adityarizkyramadhan/golang-dot-indonesia/internal/usecase"
 	custom_error "github.com/adityarizkyramadhan/golang-dot-indonesia/pkg/errors"
@@ -33,7 +32,7 @@ func (h *GoodsHandler) RegisterRoutes(r *gin.RouterGroup) {
 
 // Create a new good
 func (h *GoodsHandler) Create(ctx *gin.Context) {
-	var good entity.Goods
+	var good dto.Goods
 	if err := ctx.ShouldBindJSON(&good); err != nil {
 		err := custom_error.NewError(custom_error.ErrBadRequest, err.Error())
 		ctx.Error(err)
@@ -74,7 +73,7 @@ func (h *GoodsHandler) Get(ctx *gin.Context) {
 
 // Update modifies an existing good
 func (h *GoodsHandler) Update(c *gin.Context) {
-	var good entity.Goods
+	var good dto.GoodsUpdate
 	if err := c.ShouldBindJSON(&good); err != nil {
 		err := custom_error.NewError(custom_error.ErrBadRequest, err.Error())
 		c.Error(err)
@@ -82,7 +81,9 @@ func (h *GoodsHandler) Update(c *gin.Context) {
 		return
 	}
 
-	if err := h.goodsUsecase.Update(c.Request.Context(), &good); err != nil {
+	id := c.Param("id")
+
+	if err := h.goodsUsecase.Update(c.Request.Context(), &good, &id); err != nil {
 		c.Error(err)
 		c.Next()
 		return
