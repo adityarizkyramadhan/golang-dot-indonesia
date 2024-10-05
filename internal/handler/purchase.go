@@ -55,6 +55,7 @@ func (h *InvoiceHandler) CreateInvoice(ctx *gin.Context) {
 
 // GetInvoice handles the request for retrieving an invoice by ID
 func (h *InvoiceHandler) GetInvoice(ctx *gin.Context) {
+	userID := ctx.MustGet("id").(int)
 	id := ctx.Param("id")
 	idInt, err := strconv.Atoi(id)
 	if err != nil {
@@ -64,7 +65,7 @@ func (h *InvoiceHandler) GetInvoice(ctx *gin.Context) {
 		return
 	}
 
-	invoice, err := h.invoiceUsecase.GetInvoice(ctx.Request.Context(), idInt)
+	invoice, err := h.invoiceUsecase.GetInvoice(ctx.Request.Context(), idInt, &userID)
 	if err != nil {
 		ctx.Error(err)
 		ctx.Next()
@@ -77,6 +78,7 @@ func (h *InvoiceHandler) GetInvoice(ctx *gin.Context) {
 
 // UpdateInvoice handles the request for updating an existing invoice
 func (h *InvoiceHandler) UpdateInvoice(ctx *gin.Context) {
+	userID := ctx.MustGet("id").(int)
 	var invoice entity.InvoicePurchase
 	if err := ctx.ShouldBindJSON(&invoice); err != nil {
 		errResponse := custom_error.NewError(custom_error.ErrBadRequest, err.Error())
@@ -85,7 +87,7 @@ func (h *InvoiceHandler) UpdateInvoice(ctx *gin.Context) {
 		return
 	}
 
-	if err := h.invoiceUsecase.UpdateInvoice(ctx.Request.Context(), &invoice); err != nil {
+	if err := h.invoiceUsecase.UpdateInvoice(ctx.Request.Context(), &invoice, &userID); err != nil {
 		ctx.Error(err)
 		ctx.Next()
 		return
@@ -97,6 +99,7 @@ func (h *InvoiceHandler) UpdateInvoice(ctx *gin.Context) {
 
 // DeleteInvoice handles the request for deleting an invoice by ID
 func (h *InvoiceHandler) DeleteInvoice(ctx *gin.Context) {
+	userID := ctx.MustGet("id").(int)
 	id := ctx.Param("id")
 	idInt, err := strconv.Atoi(id)
 	if err != nil {
@@ -106,7 +109,7 @@ func (h *InvoiceHandler) DeleteInvoice(ctx *gin.Context) {
 		return
 	}
 
-	if err := h.invoiceUsecase.DeleteInvoice(ctx.Request.Context(), idInt); err != nil {
+	if err := h.invoiceUsecase.DeleteInvoice(ctx.Request.Context(), idInt, &userID); err != nil {
 		ctx.Error(err)
 		ctx.Next()
 		return
@@ -118,7 +121,8 @@ func (h *InvoiceHandler) DeleteInvoice(ctx *gin.Context) {
 
 // GetAllInvoices handles the request for retrieving all invoices
 func (h *InvoiceHandler) GetAllInvoices(ctx *gin.Context) {
-	invoices, err := h.invoiceUsecase.GetAllInvoices(ctx.Request.Context())
+	userID := ctx.MustGet("id").(int)
+	invoices, err := h.invoiceUsecase.GetAllInvoices(ctx.Request.Context(), &userID)
 	if err != nil {
 		ctx.Error(err)
 		ctx.Next()

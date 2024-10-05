@@ -42,32 +42,32 @@ func (uc *InvoiceUsecase) CreateInvoice(ctx context.Context, request dto.CreateI
 	return nil
 }
 
-func (uc *InvoiceUsecase) GetInvoice(ctx context.Context, id int) (*entity.InvoicePurchase, error) {
-	invoice, err := uc.invoiceRepo.Get(ctx, nil, id)
+func (uc *InvoiceUsecase) GetInvoice(ctx context.Context, id int, userID *int) (*entity.InvoicePurchase, error) {
+	invoice, err := uc.invoiceRepo.Get(ctx, nil, id, userID)
 	if err != nil {
 		return nil, custom_error.NewError(custom_error.ErrNotFound, "Invoice not found")
 	}
 	return invoice, nil
 }
 
-func (uc *InvoiceUsecase) UpdateInvoice(ctx context.Context, invoicePurchase *entity.InvoicePurchase) error {
-	err := uc.invoiceRepo.Update(ctx, nil, invoicePurchase)
+func (uc *InvoiceUsecase) UpdateInvoice(ctx context.Context, invoicePurchase *entity.InvoicePurchase, userID *int) error {
+	err := uc.invoiceRepo.Update(ctx, nil, invoicePurchase, userID)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (uc *InvoiceUsecase) DeleteInvoice(ctx context.Context, id int) error {
-	err := uc.invoiceRepo.Delete(ctx, nil, id)
+func (uc *InvoiceUsecase) DeleteInvoice(ctx context.Context, id int, userID *int) error {
+	err := uc.invoiceRepo.Delete(ctx, nil, id, userID)
 	if err != nil {
 		return custom_error.NewError(custom_error.ErrNotFound, "Invoice not found")
 	}
 	return nil
 }
 
-func (uc *InvoiceUsecase) GetAllInvoices(ctx context.Context) ([]entity.InvoicePurchase, error) {
-	invoices, err := uc.invoiceRepo.GetAll(ctx, nil)
+func (uc *InvoiceUsecase) GetAllInvoices(ctx context.Context, userID *int) ([]entity.InvoicePurchase, error) {
+	invoices, err := uc.invoiceRepo.GetAll(ctx, nil, userID)
 	if err != nil {
 		return nil, custom_error.NewError(custom_error.ErrNotFound, "Invoices not found")
 	}

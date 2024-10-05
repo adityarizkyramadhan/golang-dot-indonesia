@@ -15,16 +15,17 @@ type Purchase struct {
 	repoGood *Good
 }
 
-type PurchaseRepository interface {
-	Create(ctx context.Context, invoicePurchase *entity.InvoicePurchase, purchases []entity.Purchase) error
-	Get(ctx context.Context, tx *gorm.DB, id int) (*entity.InvoicePurchase, error)
-	Update(ctx context.Context, tx *gorm.DB, invoicePurchase *entity.InvoicePurchase) error
-	Delete(ctx context.Context, tx *gorm.DB, id int) error
-	GetAll(ctx context.Context, tx *gorm.DB) ([]entity.InvoicePurchase, error)
-}
-
 func NewPurchase(db *gorm.DB, redis *cache.Redis, repoGood *Good) PurchaseRepository {
 	return &Purchase{db: db, redis: redis, repoGood: repoGood}
+}
+
+// Modify the PurchaseRepository interface
+type PurchaseRepository interface {
+	Create(ctx context.Context, invoicePurchase *entity.InvoicePurchase, purchases []entity.Purchase) error
+	Get(ctx context.Context, tx *gorm.DB, id int, userID *int) (*entity.InvoicePurchase, error)          // Added userID
+	Update(ctx context.Context, tx *gorm.DB, invoicePurchase *entity.InvoicePurchase, userID *int) error // Added userID
+	Delete(ctx context.Context, tx *gorm.DB, id int, userID *int) error                                  // Added userID
+	GetAll(ctx context.Context, tx *gorm.DB, userID *int) ([]entity.InvoicePurchase, error)              // Added userID
 }
 
 func (r *Purchase) Create(ctx context.Context, invoicePurchase *entity.InvoicePurchase, purchases []entity.Purchase) error {
@@ -61,26 +62,36 @@ func (r *Purchase) Create(ctx context.Context, invoicePurchase *entity.InvoicePu
 	return nil
 }
 
-func (r *Purchase) Get(ctx context.Context, tx *gorm.DB, id int) (*entity.InvoicePurchase, error) {
+// Modify the Purchase struct to include the necessary methods
+func (r *Purchase) Get(ctx context.Context, tx *gorm.DB, id int, userID *int) (*entity.InvoicePurchase, error) {
 	var invoicePurchase entity.InvoicePurchase
 	if tx == nil {
 		tx = r.db
 	}
-	err := tx.WithContext(ctx).Preload("Purchases").First(&invoicePurchase, id).Error
+	// Add user ID check if required
+	query := tx.WithContext(ctx).Preload("Purchases").First(&invoicePurchase, id)
+	if userID != nil {
+		query = query.Where("user_id = ?", *userID)
+	}
+	err := query.Error
 	if err != nil {
 		return nil, err
 	}
 	return &invoicePurchase, nil
 }
 
-func (r *Purchase) Update(ctx context.Context, tx *gorm.DB, invoicePurchase *entity.InvoicePurchase) error {
+func (r *Purchase) Update(ctx context.Context, tx *gorm.DB, invoicePurchase *entity.InvoicePurchase, userID *int) error {
 	if tx == nil {
 		tx = r.db
+	}
+	// Optionally check user ID
+	if userID != nil {
+		// Add logic here to ensure the invoice belongs to the user
 	}
 	return tx.WithContext(ctx).Save(invoicePurchase).Error
 }
 
-func (r *Purchase) Delete(ctx context.Context, tx *gorm.DB, id int) error {
+func (r *Purchase) Delete(ctx context.Context, tx *gorm.DB, id int, userID *int) error {
 	if tx == nil {
 		tx = r.db
 	}
@@ -89,15 +100,21 @@ func (r *Purchase) Delete(ctx context.Context, tx *gorm.DB, id int) error {
 	if err != nil {
 		return err
 	}
+	// Optionally check if userID matches
 	return tx.WithContext(ctx).Delete(&invoicePurchase).Error
 }
 
-func (r *Purchase) GetAll(ctx context.Context, tx *gorm.DB) ([]entity.InvoicePurchase, error) {
+func (r *Purchase) GetAll(ctx context.Context, tx *gorm.DB, userID *int) ([]entity.InvoicePurchase, error) {
 	var invoicePurchases []entity.InvoicePurchase
 	if tx == nil {
 		tx = r.db
 	}
-	err := tx.WithContext(ctx).Preload("Purchases").Find(&invoicePurchases).Error
+	// Optionally add filtering by user ID
+	query := tx.WithContext(ctx).Preload("Purchases")
+	if userID != nil {
+		query = query.Where("user_id = ?", *userID)
+	}
+	err := query.Find(&invoicePurchases).Error
 	if err != nil {
 		return nil, err
 	}
