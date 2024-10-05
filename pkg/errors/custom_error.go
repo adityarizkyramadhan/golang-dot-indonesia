@@ -2,6 +2,7 @@ package custom_error
 
 import (
 	"fmt"
+	"strings"
 )
 
 type CustomError struct {
@@ -38,13 +39,18 @@ func NewError(key, message string) error {
 }
 
 func ParseError(err error) ParsingError {
-	key := ErrUnknown
-	message := err.Error()
 
-	if customErr, ok := err.(*CustomError); ok {
-		key = customErr.Key
-		message = customErr.Message
+	splitStr := strings.Split(err.Error(), ":")
+	if len(splitStr) < 2 {
+		return ParsingError{
+			Key:        ErrUnknown,
+			Message:    err.Error(),
+			StatusCode: 500,
+		}
 	}
+
+	key := strings.TrimSpace(splitStr[0])
+	message := strings.TrimSpace(splitStr[1])
 
 	statusCode := mapErrorKeyToStatusCode(key)
 
