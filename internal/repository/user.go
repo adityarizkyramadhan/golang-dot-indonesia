@@ -7,13 +7,13 @@ import (
 	"time"
 
 	"github.com/adityarizkyramadhan/golang-dot-indonesia/internal/entity"
-	"github.com/go-redis/redis"
+	"github.com/adityarizkyramadhan/golang-dot-indonesia/internal/infrastructure/cache"
 	"gorm.io/gorm"
 )
 
 type User struct {
 	db    *gorm.DB
-	redis *redis.Client
+	redis *cache.Redis
 }
 
 type UserRepository interface {
@@ -24,7 +24,7 @@ type UserRepository interface {
 	Delete(ctx context.Context, id int) error
 }
 
-func NewUser(db *gorm.DB, redis *redis.Client) UserRepository {
+func NewUser(db *gorm.DB, redis *cache.Redis) UserRepository {
 	return &User{db, redis}
 }
 
@@ -45,7 +45,13 @@ func (u *User) FindByUsername(ctx context.Context, username string) (*entity.Use
 }
 
 func (u *User) FindByID(ctx context.Context, id int) (*entity.User, error) {
+	// cek data di redis
 	var user entity.User
+	idStr := strconv.Itoa(id)
+	key := "user:" + idStr
+	if err := u.redis.Get(ctx, key, &user); err == nil {
+		return &user, nil
+	}
 	if err := u.db.WithContext(ctx).Where("id = ?", id).First(&user).Error; err != nil {
 		return nil, err
 	}
@@ -53,7 +59,7 @@ func (u *User) FindByID(ctx context.Context, id int) (*entity.User, error) {
 		expiredTime := time.Hour
 		idStr := strconv.Itoa(id)
 		key := "user:" + idStr
-		if err := u.redis.WithContext(ctx).Set(key, user, expiredTime).Err(); err != nil {
+		if err := u.redis.Set(ctx, key, user, expiredTime); err != nil {
 			log.Println(err)
 		}
 	}()
@@ -69,7 +75,7 @@ func (u *User) Update(ctx context.Context, user *entity.User) error {
 	go func() {
 		idStr := strconv.Itoa(*user.ID)
 		key := "user:" + idStr
-		if err := u.redis.WithContext(ctx).Del(key).Err(); err != nil {
+		if err := u.redis.Del(ctx, key); err != nil {
 			log.Println(err)
 		}
 	}()
@@ -85,10 +91,9 @@ func (u *User) Delete(ctx context.Context, id int) error {
 	go func() {
 		idStr := strconv.Itoa(id)
 		key := "user:" + idStr
-		if err := u.redis.WithContext(ctx).Del(key).Err(); err != nil {
+		if err := u.redis.Del(ctx, key); err != nil {
 			log.Println(err)
 		}
 	}()
-
 	return nil
 }

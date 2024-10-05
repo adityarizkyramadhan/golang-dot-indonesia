@@ -39,11 +39,7 @@ func main() {
 		}
 	}
 
-	redis, err := cache.NewRedis()
-	if err != nil {
-		panic(err)
-	}
-
+	redis := cache.NewRedis()
 	router := gin.New()
 
 	router.Use(gin.Logger())
