@@ -3,6 +3,7 @@ package dto
 type CreateInvoiceRequest struct {
 	InvoiceNumber *string         `json:"invoice_number" binding:"required"`
 	IsPaid        *bool           `json:"is_paid"`
+	UserID        *int            `json:"-"`
 	Purchases     []PurchaseInput `json:"purchases" binding:"required,dive"`
 }
 

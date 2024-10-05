@@ -21,6 +21,7 @@ func (uc *InvoiceUsecase) CreateInvoice(ctx context.Context, request dto.CreateI
 	invoicePurchase := &entity.InvoicePurchase{
 		InvoiceNumber: request.InvoiceNumber,
 		IsPaid:        request.IsPaid,
+		UserID:        request.UserID,
 	}
 
 	purchases := make([]entity.Purchase, len(request.Purchases))
@@ -35,7 +36,7 @@ func (uc *InvoiceUsecase) CreateInvoice(ctx context.Context, request dto.CreateI
 
 	err := uc.invoiceRepo.Create(ctx, invoicePurchase, purchases)
 	if err != nil {
-		return custom_error.NewError(custom_error.ErrInternalServer, err.Error())
+		return err
 	}
 
 	return nil
@@ -52,7 +53,7 @@ func (uc *InvoiceUsecase) GetInvoice(ctx context.Context, id int) (*entity.Invoi
 func (uc *InvoiceUsecase) UpdateInvoice(ctx context.Context, invoicePurchase *entity.InvoicePurchase) error {
 	err := uc.invoiceRepo.Update(ctx, nil, invoicePurchase)
 	if err != nil {
-		return custom_error.NewError(custom_error.ErrInternalServer, err.Error())
+		return err
 	}
 	return nil
 }
@@ -68,7 +69,7 @@ func (uc *InvoiceUsecase) DeleteInvoice(ctx context.Context, id int) error {
 func (uc *InvoiceUsecase) GetAllInvoices(ctx context.Context) ([]entity.InvoicePurchase, error) {
 	invoices, err := uc.invoiceRepo.GetAll(ctx, nil)
 	if err != nil {
-		return nil, custom_error.NewError(custom_error.ErrInternalServer, err.Error())
+		return nil, custom_error.NewError(custom_error.ErrNotFound, "Invoices not found")
 	}
 	return invoices, nil
 }

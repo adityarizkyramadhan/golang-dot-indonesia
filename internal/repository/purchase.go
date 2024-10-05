@@ -29,9 +29,20 @@ func NewPurchase(db *gorm.DB, redis *cache.Redis, repoGood *Good) PurchaseReposi
 
 func (r *Purchase) Create(ctx context.Context, invoicePurchase *entity.InvoicePurchase, purchases []entity.Purchase) error {
 	tx := r.db.WithContext(ctx).Begin()
+	invoicePurchase.BeforeCreate()
+	total := 0.0
+	for _, purchase := range purchases {
+		total += *purchase.TotalPrice
+	}
+	invoicePurchase.Total = &total
 	if err := tx.Create(invoicePurchase).Error; err != nil {
 		tx.Rollback()
 		return custom_error.NewError(custom_error.ErrInternalServer, err.Error())
+	}
+
+	for i := range purchases {
+		purchases[i].InvoicePurchaseID = invoicePurchase.ID
+		purchases[i].BeforeCreate()
 	}
 
 	if err := tx.Create(&purchases).Error; err != nil {

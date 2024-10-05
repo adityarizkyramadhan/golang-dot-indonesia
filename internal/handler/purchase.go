@@ -39,6 +39,10 @@ func (h *InvoiceHandler) CreateInvoice(ctx *gin.Context) {
 		return
 	}
 
+	userID := ctx.MustGet("id").(int)
+
+	request.UserID = &userID
+
 	if err := h.invoiceUsecase.CreateInvoice(ctx.Request.Context(), request); err != nil {
 		ctx.Error(err)
 		ctx.Next()
